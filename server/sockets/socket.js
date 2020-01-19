@@ -8,8 +8,6 @@ io.on('connection', (client) => {
 
     client.on('entrarChat', (data, callback) => {
 
-
-
         if (!data.nombre || !data.sala) {
             return callback({
                 err: true,
@@ -21,20 +19,28 @@ io.on('connection', (client) => {
 
 
         // para  mandar el id este es siguiete codigo
-        let personas = usuarios.agregarPersona(client.id, data, data.sala);
+        let personas = usuarios.agregarPersona(client.id, data.nombre, data.sala);
         //cuando una persona se conecta se dispara la funcion para actualizar la lista de personas
         client.broadcast.to(data.sala).emit('listaPersona', usuarios.getPersonaPorSala(data.sala));
+
+        // para notificar cuando un usuario se conecta a nuestra sala
+
+        client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Admin', `${data.nombre} Se unió`))
+
 
         callback(usuarios.getPersonaPorSala(data.sala));
     })
 
-    client.on('crearMensaje', (data) => {
+    client.on('crearMensaje', (data, callback) => {
 
         let persona = usuarios.getPersona(client.id);
 
         let mensaje = crearMensaje(persona.nombre, data.mensaje)
 
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje);
+
+
+        callback(mensaje);
     })
 
 
@@ -43,7 +49,7 @@ io.on('connection', (client) => {
         let personaBorrarada = usuarios.borrarPersona(client.id);
 
         client.broadcast.to(personaBorrarada.sala).emit('crearMensaje', crearMensaje('Admin', `${personaBorrarada.nombre} salio`))
-        //tenemos que volver a ejectuar este metodo para actulizar, cuando una personas se desconecta
+        //tenemos que volver a ejectuar este metodo para actualizar, cuando una personas se desconecta
         client.broadcast.to(personaBorrarada.sala).emit('listaPersona', usuarios.getPersonaPorSala(personaBorrarada.sala));
     });
 

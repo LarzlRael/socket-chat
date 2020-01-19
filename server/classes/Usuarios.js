@@ -10,6 +10,8 @@ class Usuarios {
         let persona = {
             id, nombre, sala
         };
+        console.log('Persona agregada : ',persona)
+        
         this.personas.push(persona);
         return this.personas;
     }

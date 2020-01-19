@@ -2,27 +2,29 @@ var socket = io();
 
 var params = new URLSearchParams(window.location.search);
 
-//la funcion params has es para ver si el url cumple o no con el parametro
-
-if (!params.has('nombre')) {
-    window.location = "index.html";
-    throw new Error('El nombre es necesario y sala son encearios');
+if (!params.has('nombre') || !params.has('sala')) {
+    window.location = 'index.html';
+    throw new Error('El nombre y sala son necesarios');
 }
 
 var usuario = {
     nombre: params.get('nombre'),
     sala: params.get('sala')
-}
+};
+
+
 
 socket.on('connect', function () {
     console.log('Conectado al servidor');
 
     socket.emit('entrarChat', usuario, function (resp) {
-        console.log(resp)
+        console.log('Usuarios conectados', resp);
+        renderizarUsuarios(resp);
     });
+
 });
 
-// escuchar
+// Escuchar informacion
 socket.on('disconnect', function () {
 
     console.log('Perdimos conexión con el servidor');
@@ -30,44 +32,32 @@ socket.on('disconnect', function () {
 });
 
 
-
-
-
-
 // Enviar información
-//emit emitir
 // socket.emit('crearMensaje', {
-//     usuario: 'Fernando',
+//     nombre: 'Fernando',
 //     mensaje: 'Hola Mundo'
-// }, function (resp) {
+// }, function(resp) {
 //     console.log('respuesta server: ', resp);
 // });
 
 // Escuchar información
 socket.on('crearMensaje', function (mensaje) {
-
-
+    //
     console.log('Servidor:', mensaje);
-
+    renredizarMensajes(mensaje, false);
 });
 
-//Escuchar cambios de usuario
-//cuando un usuario entra o sale del chat
-
+// Escuchar cambios de usuarios
+// cuando un usuario entra o sale del chat
 socket.on('listaPersona', function (personas) {
-
-
-    console.log('Servidor:', personas);
-
+    console.log(personas);
+    //cuando un usuario entra o sale se actualizara automaticamente
+    renderizarUsuarios(personas);
 });
 
-//mensajes privados
+// Mensajes privados
 socket.on('mensajePrivado', function (mensaje) {
-    console.log('mensaje privado ', mensaje)
-})
 
-// socket.emit('mensajePrivado', {
+    console.log('Mensaje Privado:', mensaje);
 
-//     mensaje: 'hola quien quiera que seas',
-//     para :"BPVkuHR3wqmEqycKAAAG"
-// });
+});
